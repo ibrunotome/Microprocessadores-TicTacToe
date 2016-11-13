@@ -1,7 +1,9 @@
 ; Tic-tac-toe assmebly
 ; For emu8086
 ; Made by Oz Elentok
-data segment
+.model small
+.stack 100h
+.data
 	grid db 9 dup(0)
 	player db 0
 	win db 0
@@ -17,20 +19,42 @@ data segment
 	inDigitError db "ERROR!, this place is taken$"
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
-	symbol_1_message DB "ENTER SYMBOL FOR PLAYER 1: $"
+	symbol_1_message DB "Enter symbol for player 1: $"
 	symbol_1 DB ?
-	symbol_2_message DB "ENTER SYMBOL FOR PLAYER 2: $"
+	symbol_2_message DB "Enter symbol for player 2: $"
 	symbol_2 DB ?
-ends
-stack segment
-	dw 128 dup(0)
-ends
+	name_msg DB 0DH,0AH, 'Enter the username for player 1: $'
+	username db 0dh,0ah,'$'
 
-code segment
-start:
+.CODE
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+DISP:
+    ; set username for player 1
+    LEA DX,name_msg
+    MOV AH,09H
+    INT 21H
+
+    MOV CL,00
+    MOV AH,01H
+
+READ:
+
+    INT 21H
+    MOV BL,AL
+    PUSH BX
+    inc cx
+    CMP AL,0DH
+    JZ DISPLAY
+    JMP READ
+
+DISPLAY:
     ; set symbol for player 1
-    mov ax, DATA
-    mov ds, ax
+	mov ax, data
+	mov ds, ax
+	mov es, ax
 
     lea dx, symbol_1_message
     mov ah, 9
@@ -44,8 +68,9 @@ start:
 	call printString
 
     ; set symbol for player 2
-    mov ax, DATA
-    mov ds, ax
+	mov ax, data
+	mov ds, ax
+	mov es, ax
 
     lea dx, symbol_2_message
     mov ah, 9
@@ -445,6 +470,11 @@ CheckColumns:
 	mov win, 1
 	endCheckColumns:
 	ret
+.EXIT
+end START
 
-ends
-end start
+
+; referencias
+
+; Ler nome do teclado: http://www.dailyfreecode.com/Code/read-string-keyboard-perform-reverse-1756.aspx
+; Ler caracter pra definir como simbolo: http://cssimplified.com/computer-organisation-and-assembly-language-programming/an-assembly-program-to-read-a-character-from-console-and-echo-it

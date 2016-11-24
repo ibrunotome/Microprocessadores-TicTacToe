@@ -12,10 +12,8 @@
 	welcome db "Tic Tac Toe Game - By Oz Elentok$"
 	separator db "---|---|---$"
 	enterLoc db "Enter your move by location(1-9)$"
-	turnMessageX db "Player 1 turn$"
-	turnMessageO db "Player 2 turn$"
 	tieMessage db "A tie between the two players!$"
-	winMessage db "The player who won was player $"
+	winMessage db "The player who won was $"
 	inDigitError db "ERROR!, this place is taken$"
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
@@ -75,12 +73,7 @@ DISPLAY:
     int 21h
 
     ; print player 1 name
-	xor bx, bx ; zero
-    mov bl, username1[1] ; number of chars
-    mov username1[bx+2], '$' ; insert $
-    mov dx, offset username1 + 2
-    mov ah, 9
-    int 21H
+	call printUsername1
 
     ; Show a message to say that only non digits was accept
     mov dx, offset symbolWarningMessage
@@ -105,12 +98,7 @@ DISPLAY:
     int 21h
 
     ; Print player 2 name
-	xor bx, bx ; zero
-    mov bl, username2[1] ; number of chars
-    mov username2[bx+2], '$' ; insert $
-    mov dx, offset username2 + 2
-    mov ah, 9
-    int 21H
+	call printUsername2
 
     ; Show a message to say that only non digits was accept
     mov dx, offset symbolWarningMessage
@@ -157,12 +145,7 @@ DISPLAY:
             int 21h
 
             ; Print player 1 name
-        	xor bx, bx ; zero
-            mov bl, username1[1] ; number of chars
-            mov username1[bx+2], '$' ; insert $
-            mov dx, offset username1 + 2
-            mov ah, 9
-            int 21H
+        	call printUsername1
 
             mov dx, offset twodots
             mov ah, 9
@@ -179,12 +162,7 @@ DISPLAY:
             int 21h
 
             ; Print player 2 name
-        	xor bx, bx ; zero
-            mov bl, username2[1] ; number of chars
-            mov username2[bx+2], '$' ; insert $
-            mov dx, offset username2 + 2
-            mov ah, 9
-            int 21H
+        	call printUsername2
 
             mov dx, offset twodots
             mov ah, 9
@@ -236,11 +214,9 @@ DISPLAY:
 	 call printGrid
 	 lea dx, winMessage
 	 call printString
-	 mov dl, player
-	 add dl, '0'
-	 call putChar
-	 lea dx, newline
-	 call printString
+	 cmp player, 1
+	 je player1Win
+	 jg player2Win
 
 	askForNewGame:
 	 lea dx, newGameQuest; ask for another game
@@ -541,6 +517,60 @@ CheckColumns:
 	mov win, 1
 	endCheckColumns:
 	ret
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; MY EXTRA FUNCTIONS
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Print username1
+printUsername1:
+ xor bx, bx ; zero
+ mov bl, username1[1] ; number of chars
+ mov username1[bx+2], '$' ; insert $
+ mov dx, offset username1 + 2
+ mov ah, 9
+ int 21H
+ ret
+
+; Print username2
+printUsername2:
+ xor bx, bx ; zero
+ mov bl, username2[1] ; number of chars
+ mov username2[bx+2], '$' ; insert $
+ mov dx, offset username2 + 2
+ mov ah, 9
+ int 21H
+ ret
+
+; Player 1 win, print his name and ask for a new game
+player1Win:
+ xor bx, bx ; zero
+ mov bl, username1[1] ; number of chars
+ mov username1[bx+2], '$' ; insert $
+ mov dx, offset username1 + 2
+ mov ah, 9
+ int 21H
+
+ lea dx, newline
+ call printString
+ jmp askForNewGame
+
+; Player 2 win, print his name and ask for a new game
+player2Win:
+ xor bx, bx ; zero
+ mov bl, username2[1] ; number of chars
+ mov username2[bx+2], '$' ; insert $
+ mov dx, offset username2 + 2
+ mov ah, 9
+ int 21H
+
+ lea dx, newline
+ call printString
+ jmp askForNewGame
+
 .EXIT
 end START
 

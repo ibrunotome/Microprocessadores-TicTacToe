@@ -20,8 +20,8 @@
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
 
-	symbolMessage1 db "Symbol for player 1: $"
-	symbolMessage2 db "Symbol for player 2: $"
+	symbolMessage db "Symbol for $ "
+	symbolWarningMessage db " (Except numbers): $"
 
 	symbol1 DB ?
 	symbol2 DB ?
@@ -66,9 +66,21 @@ DISPLAY:
 	mov ds, ax
 	mov es, ax
 
-    lea dx, symbolMessage1
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; print player 1 name
+	xor bx, bx ; zero
+    mov bl, username1[1] ; number of chars
+    mov username1[bx+2], '$' ; insert $
+    mov dx, offset username1 + 2
     mov ah, 9
     int 21H
+
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
 
     mov ah, 1
     int 21H
@@ -82,9 +94,21 @@ DISPLAY:
 	mov ds, ax
 	mov es, ax
 
-    lea dx, symbolMessage2
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; print player 2 name
+	xor bx, bx ; zero
+    mov bl, username2[1] ; number of chars
+    mov username2[bx+2], '$' ; insert $
+    mov dx, offset username2 + 2
     mov ah, 9
     int 21H
+
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
 
     mov ah, 1
     int 21H
@@ -502,5 +526,4 @@ end START
 
 ; referencias
 
-; Ler nome do teclado: http://www.dailyfreecode.com/Code/read-string-keyboard-perform-reverse-1756.aspx
 ; Ler caracter pra definir como simbolo: http://cssimplified.com/computer-organisation-and-assembly-language-programming/an-assembly-program-to-read-a-character-from-console-and-echo-it

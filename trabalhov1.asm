@@ -37,6 +37,8 @@ START:
     MOV AX, DATA
     MOV DS, AX
     mov es, ax
+
+
 NAME:
     ; prompt message to username for player 1
     lea dx, namePlayer1
@@ -83,6 +85,16 @@ DISPLAY:
     mov ah, 1
     int 21H
     mov symbol1, al
+
+    mov al, 1
+    mov bh, 0
+    mov bl, 0011_1011b
+    mov cx, 1 ; calculate message size.
+    mov dl, 10
+    mov dh, 7
+    mov bp, offset symbol1
+    mov ah, 13h
+    int 10h
 
 	lea dx, newline
 	call printString
@@ -570,6 +582,26 @@ player2Win:
  lea dx, newline
  call printString
  jmp askForNewGame
+
+
+; Change color of symbol1
+changeColorSymbol1:
+    mov al, 1
+    mov bh, 0
+    mov bl, 0011_1011b
+    mov cx, msg1end - offset msg1 ; calculate message size.
+    mov dl, 10
+    mov dh, 7
+    push cs
+    pop es
+    mov bp, offset msg1
+    mov ah, 13h
+    int 10h
+    jmp msg1end
+    msg1 dw symbol1
+    msg1end:
+    ret
+
 
 .EXIT
 end START

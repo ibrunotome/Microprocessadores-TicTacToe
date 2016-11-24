@@ -19,50 +19,60 @@
 	inDigitError db "ERROR!, this place is taken$"
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
-	symbol_1_message DB "Enter symbol for player 1: $"
-	symbol_1 DB ?
-	symbol_2_message DB "Enter symbol for player 2: $"
-	symbol_2 DB ?
-	name_msg DB 0DH,0AH, 'Enter the username for player 1: $'
-	username db 0dh,0ah,'$'
 
+	symbolMessage1 db "Symbol for player 1: $"
+	symbolMessage2 db "Symbol for player 2: $"
+
+	symbol1 DB ?
+	symbol2 DB ?
+
+	namePlayer1 db "Name of player 1: $"
+	namePlayer2 db "Name of player 2: $"
+
+	username1 db 10, ?, 10 dup(' ')
+	username2 db 10, ?, 10 dup(' ')
 .CODE
 START:
-    MOV AX,DATA
-    MOV DS,AX
+    MOV AX, DATA
+    MOV DS, AX
+    mov es, ax
+NAME:
+    ; prompt message to username for player 1
+    lea dx, namePlayer1
+    mov ah, 9
+    int 21H
 
-DISP:
-    ; set username for player 1
-    LEA DX,name_msg
-    MOV AH,09H
-    INT 21H
+    mov dx, offset username1
+    mov ah, 0ah
+    int 21h
 
-    MOV CL,00
-    MOV AH,01H
+    lea dx, newline
+	call printString
 
-READ:
+    ; prompt message to username for player 2
+	lea dx, namePlayer2
+    mov ah, 9
+    int 21H
 
-    INT 21H
-    MOV BL,AL
-    PUSH BX
-    inc cx
-    CMP AL,0DH
-    JZ DISPLAY
-    JMP READ
+    mov dx, offset username2
+    mov ah, 0ah
+    int 21h
 
+    lea dx, newline
+	call printString
 DISPLAY:
     ; set symbol for player 1
 	mov ax, data
 	mov ds, ax
 	mov es, ax
 
-    lea dx, symbol_1_message
+    lea dx, symbolMessage1
     mov ah, 9
     int 21H
 
     mov ah, 1
     int 21H
-    mov symbol_1, al
+    mov symbol1, al
 
 	lea dx, newline
 	call printString
@@ -72,13 +82,13 @@ DISPLAY:
 	mov ds, ax
 	mov es, ax
 
-    lea dx, symbol_2_message
+    lea dx, symbolMessage2
     mov ah, 9
     int 21H
 
     mov ah, 1
     int 21H
-    mov symbol_2, al
+    mov symbol2, al
 
     ; end of set symbols
 
@@ -108,14 +118,30 @@ DISPLAY:
 		je p2turn
 			; previous player was 2
 			shr player, 1; 0010b --> 0001b;
-			lea dx, turnMessageX
+
+            ;-------------------------------------------;
+            ; print player 1 name
+			xor bx, bx ; zero
+            mov bl, username1[1] ; number of chars
+            mov username1[bx+2], '$' ; insert $
+            mov dx, offset username1 + 2
+            mov ah, 9
+
 			call printString
 			lea dx, newline
 			call printString
 			jmp endPlayerSwitch
 		p2turn:; previous player was 1
 			shl player, 1; 0001b --> 0010b
-			lea dx, turnMessageO
+
+			;-------------------------------------------;
+            ; print player 2 name
+			xor bx, bx ; zero
+            mov bl, username2[1] ; number of chars
+            mov username2[bx+2], '$' ; insert $
+            mov dx, offset username2 + 2
+            mov ah, 9
+
 			call printString
 			lea dx, newline
 			call printString
@@ -125,10 +151,10 @@ DISPLAY:
 		mov dl, player
 		cmp dl, 1
 		jne p2move
-		mov dl, symbol_1
+		mov dl, symbol1
 		jmp contMoves
 		p2move:
-		mov dl, symbol_2
+		mov dl, symbol2
 		contMoves:
 		mov [bx], dl
 		cmp cx, 5 ; no need to check before the 5th turn

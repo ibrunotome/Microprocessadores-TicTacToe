@@ -23,6 +23,9 @@
 	symbolMessage db "Symbol for $ "
 	symbolWarningMessage db " (Except numbers): $"
 
+	turnMessage db "Turn of $ "
+	twodots db ": $ "
+
 	symbol1 DB ?
 	symbol2 DB ?
 
@@ -66,6 +69,7 @@ DISPLAY:
 	mov ds, ax
 	mov es, ax
 
+    ; Ask player 1 name
     mov dx, offset symbolMessage
     mov ah, 9
     int 21h
@@ -78,6 +82,7 @@ DISPLAY:
     mov ah, 9
     int 21H
 
+    ; Show a message to say that only non digits was accept
     mov dx, offset symbolWarningMessage
     mov ah, 9
     int 21h
@@ -89,16 +94,17 @@ DISPLAY:
 	lea dx, newline
 	call printString
 
-    ; set symbol for player 2
+    ; Set symbol for player 2
 	mov ax, data
 	mov ds, ax
 	mov es, ax
 
+    ; Ask player 2 name
     mov dx, offset symbolMessage
     mov ah, 9
     int 21h
 
-    ; print player 2 name
+    ; Print player 2 name
 	xor bx, bx ; zero
     mov bl, username2[1] ; number of chars
     mov username2[bx+2], '$' ; insert $
@@ -106,6 +112,7 @@ DISPLAY:
     mov ah, 9
     int 21H
 
+    ; Show a message to say that only non digits was accept
     mov dx, offset symbolWarningMessage
     mov ah, 9
     int 21h
@@ -144,31 +151,45 @@ DISPLAY:
 			shr player, 1; 0010b --> 0001b;
 
             ;-------------------------------------------;
-            ; print player 1 name
-			xor bx, bx ; zero
+            ; Print change turn message
+            mov dx, offset turnMessage
+            mov ah, 9
+            int 21h
+
+            ; Print player 1 name
+        	xor bx, bx ; zero
             mov bl, username1[1] ; number of chars
             mov username1[bx+2], '$' ; insert $
             mov dx, offset username1 + 2
             mov ah, 9
+            int 21H
 
-			call printString
-			lea dx, newline
-			call printString
+            mov dx, offset twodots
+            mov ah, 9
+            int 21h
+
 			jmp endPlayerSwitch
 		p2turn:; previous player was 1
 			shl player, 1; 0001b --> 0010b
 
 			;-------------------------------------------;
-            ; print player 2 name
-			xor bx, bx ; zero
+            ; Print change turn message
+            mov dx, offset turnMessage
+            mov ah, 9
+            int 21h
+
+            ; Print player 2 name
+        	xor bx, bx ; zero
             mov bl, username2[1] ; number of chars
             mov username2[bx+2], '$' ; insert $
             mov dx, offset username2 + 2
             mov ah, 9
+            int 21H
 
-			call printString
-			lea dx, newline
-			call printString
+            mov dx, offset twodots
+            mov ah, 9
+            int 21h
+
 
 		endPlayerSwitch:
 		call getMove; bx will point to the right board postiton at the end of getMove

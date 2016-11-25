@@ -86,16 +86,6 @@ DISPLAY:
     int 21H
     mov symbol1, al
 
-    mov al, 1
-    mov bh, 0
-    mov bl, 0011_1011b
-    mov cx, 1 ; calculate message size.
-    mov dl, 10
-    mov dh, 7
-    mov bp, offset symbol1
-    mov ah, 13h
-    int 10h
-
 	lea dx, newline
 	call printString
 
@@ -120,6 +110,8 @@ DISPLAY:
     mov ah, 1
     int 21H
     mov symbol2, al
+
+    call changeColorTable
 
     ; end of set symbols
 
@@ -280,7 +272,7 @@ clearScreen:
 ;-------------------------------------------;
 ; Gets location that can be used
 ; after successfuly geting the location:
-; al - will hold the place number(0 - 8)
+; al - will hold the place number(0 - 9)
 ; bx - will hold the positon(bx[al])
 getMove:
 	call getChar; al = getchar()
@@ -370,7 +362,6 @@ printGrid:
 ; bx += 3, for the next row
 ; dx points to newline
 printRow:
-
 	;First Cell
 	mov dl, ' '
 	call putChar
@@ -585,23 +576,66 @@ player2Win:
 
 
 ; Change color of symbol1
-changeColorSymbol1:
+changeColorTable:
     mov al, 1
     mov bh, 0
-    mov bl, 0011_1011b
-    mov cx, msg1end - offset msg1 ; calculate message size.
-    mov dl, 10
-    mov dh, 7
-    push cs
-    pop es
-    mov bp, offset msg1
+    mov bl, 00001100b
+    mov cx, 1
+
+    ; Color position [1][1]
+    mov dl, 1 ; col
+    mov dh, 3 ; row
     mov ah, 13h
     int 10h
-    jmp msg1end
-    msg1 dw symbol1
-    msg1end:
-    ret
 
+    ; Color position [1][2]
+    mov dl, 5 ; col
+    mov dh, 3 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [1][3]
+    mov dl, 9 ; col
+    mov dh, 3 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [2][1]
+    mov dl, 1 ; col
+    mov dh, 5 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [2][2]
+    mov dl, 5 ; col
+    mov dh, 5 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [2][3]
+    mov dl, 9 ; col
+    mov dh, 5 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [3][1]
+    mov dl, 1 ; col
+    mov dh, 7 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [3][2]
+    mov dl, 5 ; col
+    mov dh, 7 ; row
+    mov ah, 13h
+    int 10h
+
+    ; Color position [3][3]
+    mov dl, 9 ; col
+    mov dh, 7 ; row
+    mov ah, 13h
+    int 10h
+    ret
 
 .EXIT
 end START

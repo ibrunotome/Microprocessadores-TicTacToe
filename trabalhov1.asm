@@ -18,6 +18,8 @@
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
 
+    colorMessage db "Color for this match:$ "
+    colorOptions db "Choose a color: 1=blue 2=green 3=cyan 4=red 5=magenta$"
 	symbolMessage db "Symbol for $ "
 	symbolWarningMessage db " (Except numbers): $"
 
@@ -26,6 +28,8 @@
 
 	symbol1 DB ?
 	symbol2 DB ?
+	color1  DB ?
+	color2  DB ?
 
 	namePlayer1 db "Name of player 1: $"
 	namePlayer2 db "Name of player 2: $"
@@ -38,86 +42,9 @@ START:
     MOV DS, AX
     mov es, ax
 
-
-NAME:
-    ; prompt message to username for player 1
-    lea dx, namePlayer1
-    mov ah, 9
-    int 21H
-
-    mov dx, offset username1
-    mov ah, 0ah
-    int 21h
-
-    lea dx, newline
-	call printString
-
-    ; prompt message to username for player 2
-	lea dx, namePlayer2
-    mov ah, 9
-    int 21H
-
-    mov dx, offset username2
-    mov ah, 0ah
-    int 21h
-
-    lea dx, newline
-	call printString
-DISPLAY:
-    ; set symbol for player 1
-	mov ax, data
-	mov ds, ax
-	mov es, ax
-
-    ; Ask player 1 name
-    mov dx, offset symbolMessage
-    mov ah, 9
-    int 21h
-
-    ; print player 1 name
-	call printUsername1
-
-    ; Show a message to say that only non digits was accept
-    mov dx, offset symbolWarningMessage
-    mov ah, 9
-    int 21h
-
-    mov ah, 1
-    int 21H
-    mov symbol1, al
-
-	lea dx, newline
-	call printString
-
-    ; Set symbol for player 2
-	mov ax, data
-	mov ds, ax
-	mov es, ax
-
-    ; Ask player 2 name
-    mov dx, offset symbolMessage
-    mov ah, 9
-    int 21h
-
-    ; Print player 2 name
-	call printUsername2
-
-    ; Show a message to say that only non digits was accept
-    mov dx, offset symbolWarningMessage
-    mov ah, 9
-    int 21h
-
-    mov ah, 1
-    int 21H
-    mov symbol2, al
-
-    call changeColorTable
-
-    ; end of set symbols
-
-	mov ax, data
-	mov ds, ax
-	mov es, ax
+    call USERNAME
+    call SYMBOL
+    call COLOR
 
 	newGame:
 	call initiateGrid
@@ -575,11 +502,38 @@ player2Win:
  jmp askForNewGame
 
 
+setBlueColor:
+    mov bl, 00000001b
+    call changeColorTable
+    ret
+
+setGreenColor:
+    mov bl, 00000010b
+    call changeColorTable
+    ret
+
+setCyanColor:
+    mov bl, 00000011b
+    call changeColorTable
+    ret
+
+setRedColor:
+    mov bl, 00000100b
+    call changeColorTable
+    ret
+
+setMagentaColor:
+    mov bl, 00000101b
+    call changeColorTable
+    ret
+
+
 ; Change color of symbol1
 changeColorTable:
+
     mov al, 1
     mov bh, 0
-    mov bl, 00001100b
+
     mov cx, 1
 
     ; Color position [1][1]
@@ -635,6 +589,131 @@ changeColorTable:
     mov dh, 7 ; row
     mov ah, 13h
     int 10h
+    ret
+
+; Set the name of users
+USERNAME:
+    ; prompt message to username for player 1
+    lea dx, namePlayer1
+    mov ah, 9
+    int 21H
+
+    mov dx, offset username1
+    mov ah, 0ah
+    int 21h
+
+    lea dx, newline
+	call printString
+
+    ; prompt message to username for player 2
+	lea dx, namePlayer2
+    mov ah, 9
+    int 21H
+
+    mov dx, offset username2
+    mov ah, 0ah
+    int 21h
+
+    lea dx, newline
+	call printString
+	ret
+
+; Set the symbols for the users
+SYMBOL:
+    ; set symbol for player 1
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    ; Ask player 1 symbol
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; Print player 1 name
+	call printUsername1
+
+    ; Show a message to say that only non digits was accept
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
+
+    mov ah, 1
+    int 21H
+    mov symbol1, al
+
+	lea dx, newline
+	call printString
+
+    ; Set symbol for player 2
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    ; Ask player 2 symbol
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; Print player 2 name
+	call printUsername2
+
+    ; Show a message to say that only non digits was accept
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
+
+    mov ah, 1
+    int 21H
+    mov symbol2, al
+
+    lea dx, newline
+    call printString
+    ret
+
+; Set the color of the symbols
+COLOR:
+    ; set color for player 1
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    lea dx, newline
+	call printString
+
+    lea dx, colorOptions
+    mov ah, 9
+    int 21H
+
+    lea dx, newline
+    call printString
+
+    lea dx, newline
+	call printString
+
+    ; Ask player 1 color
+    mov dx, offset colorMessage
+    mov ah, 9
+    int 21h
+
+    mov ah, 1
+    int 21H
+    mov color1, al
+
+	lea dx, newline
+	call printString
+
+	cmp color1, '1'
+	je setBlueColor
+	cmp color1, '2'
+	je setGreenColor
+	cmp color1, '3'
+	je setCyanColor
+	cmp color1, '4'
+	je setRedColor
+	cmp color1, '5'
+	je setMagentaColor
+
     ret
 
 .EXIT

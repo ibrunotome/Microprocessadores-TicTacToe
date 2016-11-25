@@ -19,7 +19,7 @@
 	newline db 0Dh,0Ah,'$'
 
     colorMessage db "Color for this match:$ "
-    colorOptions db "Choose a color: 1=blue 2=green 3=cyan 4=red 5=magenta$"
+    colorOptions db "Choose a color: 0=White 1=blue 2=green 3=cyan 4=red 5=magenta 6=Brown 7=LightGray 8=DarkGray 9=Yellow$"
 	symbolMessage db "Symbol for $ "
 	symbolWarningMessage db " (Except numbers): $"
 
@@ -28,7 +28,7 @@
 
 	symbol1 DB ?
 	symbol2 DB ?
-	color1  DB ?
+	choosenColor  DB ?
 	color2  DB ?
 
 	namePlayer1 db "Name of player 1: $"
@@ -44,9 +44,9 @@ START:
 
     call USERNAME
     call SYMBOL
-    call COLOR
 
 	newGame:
+	call COLOR
 	call initiateGrid
 	mov player, 10b; 2dec
 	mov win, 0
@@ -71,6 +71,9 @@ START:
 
             ;-------------------------------------------;
             ; Print change turn message
+            lea dx, newline
+            call printString
+
             mov dx, offset turnMessage
             mov ah, 9
             int 21h
@@ -88,6 +91,9 @@ START:
 
 			;-------------------------------------------;
             ; Print change turn message
+            lea dx, newline
+            call printString
+
             mov dx, offset turnMessage
             mov ah, 9
             int 21h
@@ -502,8 +508,13 @@ player2Win:
  jmp askForNewGame
 
 
+setWhiteColor:
+    mov bl, 00001111b
+    call changeColorTable
+    ret
+
 setBlueColor:
-    mov bl, 00000001b
+    mov bl, 11110001b
     call changeColorTable
     ret
 
@@ -524,6 +535,26 @@ setRedColor:
 
 setMagentaColor:
     mov bl, 00000101b
+    call changeColorTable
+    ret
+
+setBrownColor:
+    mov bl, 00000110b
+    call changeColorTable
+    ret
+
+setLightGrayColor:
+    mov bl, 00000111b
+    call changeColorTable
+    ret
+
+setDarkGrayColor:
+    mov bl, 00001000b
+    call changeColorTable
+    ret
+
+setYellowColor:
+    mov bl, 00001110b
     call changeColorTable
     ret
 
@@ -698,21 +729,31 @@ COLOR:
 
     mov ah, 1
     int 21H
-    mov color1, al
+    mov choosenColor, al
 
 	lea dx, newline
 	call printString
 
-	cmp color1, '1'
+	cmp choosenColor, '0'
+	je setWhiteColor
+	cmp choosenColor, '1'
 	je setBlueColor
-	cmp color1, '2'
+	cmp choosenColor, '2'
 	je setGreenColor
-	cmp color1, '3'
+	cmp choosenColor, '3'
 	je setCyanColor
-	cmp color1, '4'
+	cmp choosenColor, '4'
 	je setRedColor
-	cmp color1, '5'
+	cmp choosenColor, '5'
 	je setMagentaColor
+	cmp choosenColor, '6'
+	je setBrownColor
+	cmp choosenColor, '7'
+	je setLightGrayColor
+	cmp choosenColor, '8'
+	je setDarkGrayColor
+	cmp choosenColor, '9'
+	je setYellowColor
 
     ret
 

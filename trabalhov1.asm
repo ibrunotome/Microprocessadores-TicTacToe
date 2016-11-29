@@ -18,7 +18,7 @@
 	inError db "ERROR!, input is not a digit$"
 	newline db 0Dh,0Ah,'$'
 
-    colorMessage db "Color for this match:$ "
+    colorMessage db "Color for $ "
     colorOptions db "Choose a color: 0=White 1=blue 2=green 3=cyan 4=red 5=magenta 6=Brown 7=LightGray 8=DarkGray 9=Yellow$"
 	symbolMessage db "Symbol for $ "
 	symbolWarningMessage db " (Except numbers): $"
@@ -28,7 +28,7 @@
 
 	symbol1 DB ?
 	symbol2 DB ?
-	choosenColor  DB ?
+	color1  DB ?
 	color2  DB ?
 
 	namePlayer1 db "Name of player 1: $"
@@ -47,11 +47,13 @@ START:
 
 	newGame:
 	call COLOR
+	call setColorPlayer1
 	call initiateGrid
 	mov player, 10b; 2dec
 	mov win, 0
 	mov cx, 9
 	gameAgain:
+	    call swithColor
 		call clearScreen
 		lea dx, welcome
 		call printString
@@ -107,6 +109,7 @@ START:
 
 
 		endPlayerSwitch:
+
 		call getMove; bx will point to the right board postiton at the end of getMove
 		mov dl, player
 		cmp dl, 1
@@ -514,7 +517,7 @@ setWhiteColor:
     ret
 
 setBlueColor:
-    mov bl, 11110001b
+    mov bl, 00001001b
     call changeColorTable
     ret
 
@@ -561,6 +564,8 @@ setYellowColor:
 
 ; Change color of symbol1
 changeColorTable:
+
+    pusha
 
     mov al, 1
     mov bh, 0
@@ -620,6 +625,9 @@ changeColorTable:
     mov dh, 7 ; row
     mov ah, 13h
     int 10h
+
+    popa
+
     ret
 
 ; Set the name of users
@@ -702,8 +710,62 @@ SYMBOL:
     call printString
     ret
 
+
+setColorPlayer1:
+    cmp color1, '0'
+	je setWhiteColor
+	cmp color1, '1'
+	je setBlueColor
+	cmp color1, '2'
+	je setGreenColor
+	cmp color1, '3'
+	je setCyanColor
+	cmp color1, '4'
+	je setRedColor
+	cmp color1, '5'
+	je setMagentaColor
+	cmp color1, '6'
+	je setBrownColor
+	cmp color1, '7'
+	je setLightGrayColor
+	cmp color1, '8'
+	je setDarkGrayColor
+	cmp color1, '9'
+	je setYellowColor
+	ret
+
+setColorPlayer2:
+    cmp color2, '0'
+	je setWhiteColor
+	cmp color2, '1'
+	je setBlueColor
+	cmp color2, '2'
+	je setGreenColor
+	cmp color2, '3'
+	je setCyanColor
+	cmp color2, '4'
+	je setRedColor
+	cmp color2, '5'
+	je setMagentaColor
+	cmp color2, '6'
+	je setBrownColor
+	cmp color2, '7'
+	je setLightGrayColor
+	cmp color2, '8'
+	je setDarkGrayColor
+	cmp color2, '9'
+	je setYellowColor
+	ret
+
+swithColor:
+	cmp player, 1
+	je setColorPlayer2
+	jg setColorPlayer1
+    ret
+
 ; Set the color of the symbols
 COLOR:
+    call clearScreen
     ; set color for player 1
 	mov ax, data
 	mov ds, ax
@@ -727,33 +789,32 @@ COLOR:
     mov ah, 9
     int 21h
 
+    call printUsername1
+    lea dx, twodots
+    call printString
+
     mov ah, 1
     int 21H
-    mov choosenColor, al
+    mov color1, al
 
 	lea dx, newline
 	call printString
 
-	cmp choosenColor, '0'
-	je setWhiteColor
-	cmp choosenColor, '1'
-	je setBlueColor
-	cmp choosenColor, '2'
-	je setGreenColor
-	cmp choosenColor, '3'
-	je setCyanColor
-	cmp choosenColor, '4'
-	je setRedColor
-	cmp choosenColor, '5'
-	je setMagentaColor
-	cmp choosenColor, '6'
-	je setBrownColor
-	cmp choosenColor, '7'
-	je setLightGrayColor
-	cmp choosenColor, '8'
-	je setDarkGrayColor
-	cmp choosenColor, '9'
-	je setYellowColor
+	; Ask player 2 color
+    mov dx, offset colorMessage
+    mov ah, 9
+    int 21h
+
+    call printUsername2
+    lea dx, twodots
+    call printString
+
+    mov ah, 1
+    int 21H
+    mov color2, al
+
+	lea dx, newline
+	call printString
 
     ret
 

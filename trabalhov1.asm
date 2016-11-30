@@ -1,6 +1,7 @@
-; Tic-tac-toe assmebly
+; Tic-tac-toe assembly
 ; For emu8086
-; Made by Oz Elentok
+; Made by Oz Elentok, modified by Bruno Tomé
+
 .model small
 .stack 100h
 .data
@@ -858,6 +859,8 @@ changeColorTable:
 end START
 
 
-; referencias
+; References
 
-; Ler caracter pra definir como simbolo: http://cssimplified.com/computer-organisation-and-assembly-language-programming/an-assembly-program-to-read-a-character-from-console-and-echo-it
+; Read symbol: http://cssimplified.com/computer-organisation-and-assembly-language-programming/an-assembly-program-to-read-a-character-from-console-and-echo-it
+; Read string: Slide of interrupts
+; Working with colors: Document i8086_and_DOS_interrupts.pdf

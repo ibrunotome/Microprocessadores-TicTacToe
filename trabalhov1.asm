@@ -4,38 +4,38 @@
 .model small
 .stack 100h
 .data
-	grid db 9 dup(0)
-	player db 0
-	win db 0
-	temp db 0
-	newGameQuest db "Would you like a rematch? (y - yes, any key - no)$"
-	welcome db "Tic Tac Toe Game - By Oz Elentok$"
-	separator db "---|---|---$"
-	enterLoc db "Enter your move by location(1-9)$"
-	tieMessage db "A tie between the two players!$"
-	winMessage db "The player who won was $"
-	inDigitError db "ERROR!, this place is taken$"
-	inError db "ERROR!, input is not a digit$"
-	newline db 0Dh,0Ah,'$'
+	grid DB 9 dup(0)
+	player DB 0
+	win DB 0
+	temp DB 0
+	newGameQuest DB "Would you like a rematch? (y - yes, any key - no)$"
+	welcome DB "Tic Tac Toe Game - By Oz Elentok$"
+	separator DB "---|---|---$"
+	enterLoc DB "Enter your move by location(1-9)$"
+	tieMessage DB "A tie between the two players!$"
+	winMessage DB "The player who won was $"
+	inDigitError DB "ERROR!, this place is taken$"
+	inError DB "ERROR!, input is not a digit$"
+	newline DB 0Dh,0Ah,'$'
 
-    colorMessage db "Color for $ "
-    colorOptions db "Choose a color: 0=White 1=blue 2=green 3=cyan 4=red 5=magenta 6=Brown 7=LightGray 8=DarkGray 9=Yellow$"
-	symbolMessage db "Symbol for $ "
-	symbolWarningMessage db " (Except numbers): $"
+    colorMessage DB "Color for $ "
+    colorOptions DB "Choose a color: 0=White 1=blue 2=green 3=cyan 4=red 5=magenta 6=Brown 7=LightGray 8=DarkGray 9=Yellow$"
+	symbolMessage DB "Symbol for $ "
+	symbolWarningMessage DB " (Except numbers): $"
 
-	turnMessage db "Turn of $ "
-	twodots db ": $ "
+	turnMessage DB "Turn of $ "
+	twodots DB ": $ "
 
 	symbol1 DB ?
 	symbol2 DB ?
 	color1  DB ?
 	color2  DB ?
 
-	namePlayer1 db "Name of player 1: $"
-	namePlayer2 db "Name of player 2: $"
+	namePlayer1 DB "Name of player 1: $"
+	namePlayer2 DB "Name of player 2: $"
 
-	username1 db 10, ?, 10 dup(' ')
-	username2 db 10, ?, 10 dup(' ')
+	username1 DB 10, ?, 10 dup(' ')
+	username2 DB 10, ?, 10 dup(' ')
 .CODE
 START:
     MOV AX, DATA
@@ -45,130 +45,138 @@ START:
     call USERNAME
     call SYMBOL
 
-	newGame:
+newGame:
+	; First player always is player1, so, setColorPlayer1
 	call COLOR
 	call setColorPlayer1
 	call initiateGrid
 	mov player, 10b; 2dec
 	mov win, 0
 	mov cx, 9
-	gameAgain:
-	    call swithColor
-		call clearScreen
-		lea dx, welcome
-		call printString
-		lea dx, newline
-		call printString
-		lea dx, enterLoc
-		call printString
-		lea dx, newline
-		call printString
-		call printString
-		call printGrid
-		mov al, player
-		cmp al, 1
-		je p2turn
-			; previous player was 2
-			shr player, 1; 0010b --> 0001b;
 
-            ;-------------------------------------------;
-            ; Print change turn message
-            lea dx, newline
-            call printString
+gameAgain:
+	; It's a new round, swith the color of the table
+    call swithColor
+	call clearScreen
+	lea dx, welcome
+	call printString
+	lea dx, newline
+	call printString
+	lea dx, enterLoc
+	call printString
+	lea dx, newline
+	call printString
+	call printString
+	call printGrid
+	mov al, player
+	cmp al, 1
+	je p2turn
 
-            mov dx, offset turnMessage
-            mov ah, 9
-            int 21h
+	; previous player was 2
+	shr player, 1; 0010b --> 0001b;
 
-            ; Print player 1 name
-        	call printUsername1
+    ;-------------------------------------------;
+    ; Print change turn message
+    lea dx, newline
+    call printString
 
-            mov dx, offset twodots
-            mov ah, 9
-            int 21h
+	; Print turnMessage
+    mov dx, offset turnMessage
+    mov ah, 9
+    int 21h
 
-			jmp endPlayerSwitch
-		p2turn:; previous player was 1
-			shl player, 1; 0001b --> 0010b
+    ; Print player 1 name
+	call printUsername1
 
-			;-------------------------------------------;
-            ; Print change turn message
-            lea dx, newline
-            call printString
+	; Print two dots
+    mov dx, offset twodots
+    mov ah, 9
+    int 21h
 
-            mov dx, offset turnMessage
-            mov ah, 9
-            int 21h
+	jmp endPlayerSwitch
 
-            ; Print player 2 name
-        	call printUsername2
+p2turn: ; previous player was 1
+	shl player, 1; 0001b --> 0010b
 
-            mov dx, offset twodots
-            mov ah, 9
-            int 21h
+	;-------------------------------------------;
+    ; Print change turn message
+    lea dx, newline
+    call printString
 
+    mov dx, offset turnMessage
+    mov ah, 9
+    int 21h
 
-		endPlayerSwitch:
+    ; Print player 2 name
+	call printUsername2
 
-		call getMove; bx will point to the right board postiton at the end of getMove
-		mov dl, player
-		cmp dl, 1
-		jne p2move
-		mov dl, symbol1
-		jmp contMoves
-		p2move:
-		mov dl, symbol2
-		contMoves:
-		mov [bx], dl
-		cmp cx, 5 ; no need to check before the 5th turn
-		jg noWinCheck
-		call checkWin
-		cmp win, 1
-		je won
-		noWinCheck:
-		loop gameAgain
+    mov dx, offset twodots
+    mov ah, 9
+    int 21h
 
-	;tie, cx = 0 at this point and no player has won
-	 call clearScreen
-	 lea dx, welcome
-	 call printString
-	 lea dx, newline
-	 call printString
-	 call printString
-	 call printString
-	 call printGrid
-	 lea dx, tieMessage
-	 call printString
-	 lea dx, newline
-	 call printString
-	 jmp askForNewGame
+endPlayerSwitch:
+	call getMove ; bx will point to the right board position at the end of getMove
+	mov dl, player
+	cmp dl, 1
+	jne p2move
+	mov dl, symbol1
+	jmp contMoves
 
-	won:; current player has won
-	 call clearScreen
-	 lea dx, welcome
-	 call printString
-	 lea dx, newline
-	 call printString
-	 call printString
-	 call printString
-	 call printGrid
-	 lea dx, winMessage
-	 call printString
-	 cmp player, 1
-	 je player1Win
-	 jg player2Win
+p2move:
+	mov dl, symbol2
 
-	askForNewGame:
-	 lea dx, newGameQuest; ask for another game
-	 call printString
-	 lea dx, newline
-	 call printString
-	 call getChar
-	 cmp al, 'y'; play again if 'y' is pressed
-	 jne sof
-	 jmp newGame
+contMoves:
+	mov [bx], dl
+	cmp cx, 5 ; no need to check before the 5th turn
+	jg noWinCheck
+	call checkWin
+	cmp win, 1
+	je won
 
-	sof:
+noWinCheck:
+	loop gameAgain
+
+tie: ; tie, cx = 0 at this point and no player has won
+	call clearScreen
+	lea dx, welcome
+	call printString
+	lea dx, newline
+	call printString
+	call printString
+	call printString
+	call printGrid
+	lea dx, tieMessage
+	call printString
+	lea dx, newline
+	call printString
+	jmp askForNewGame
+
+won: ; current player has won
+	call clearScreen
+	lea dx, welcome
+	call printString
+	lea dx, newline
+	call printString
+	call printString
+	call printString
+	call printGrid
+	lea dx, winMessage
+	call printString
+	cmp player, 1
+	je player1Win
+	jg player2Win
+
+askForNewGame:
+	lea dx, newGameQuest ; ask for another game
+	call printString
+	lea dx, newline
+	call printString
+	call getChar
+	cmp al, 'y' ; play again if 'y' is pressed
+	jne sof
+	jmp newGame
+
+sof:
 	mov ax, 4c00h
 	int 21h
 
@@ -179,6 +187,7 @@ getChar:
 	mov ah, 01
 	int 21h
 	ret
+
 ;-------------------------------------------;
 ; Sets ah = 02
 ; Output char from dl
@@ -187,6 +196,7 @@ putChar:
 	mov ah, 02
 	int 21h
 	ret
+
 ;-------------------------------------------;
 ; Sets ah = 09
 ; Outputs string from dx
@@ -223,7 +233,7 @@ getMove:
 	call printString
 	jmp getMove
 
-	contCheckTaken: ; Checks this: if(grid[al] > '9'), grid[al] == 'O' or 'X'
+contCheckTaken: ; Checks this: if(grid[al] > '9'), grid[al] == 'O' or 'X'
 	lea bx, grid
 	sub al, '1'
 	mov ah, 0
@@ -344,8 +354,9 @@ checkWin:
 	cmp win, 1
 	je endCheckWin
 	call CheckColumns
-	endCheckWin:
-	ret
+
+endCheckWin:
+ret
 
 ;-------------------------------------------;
 checkDiagonal:
@@ -361,7 +372,7 @@ checkDiagonal:
 	mov win, 1
 	ret
 
-	diagonalRtL:
+diagonalRtL:
 	mov bx, si
 	add bx, 2	;grid[0] ---> grid[2]
 	mov al, [bx]
@@ -389,31 +400,32 @@ checkRows:
 	mov win, 1
 	ret
 
-	secondRow:
-	mov bx, si; --->grid[0]
-	add bx, 3	;grid[0] ---> grid[3]
+secondRow:
+	mov bx, si ; --->grid[0]
+	add bx, 3 ;grid[0] ---> grid[3]
 	mov al, [bx]
-	inc bx	;grid[3] ---> grid[4]
+	inc bx ;grid[3] ---> grid[4]
 	cmp al, [bx]
 	jne thirdRow
-	inc bx	;grid[4] ---> grid[5]
+	inc bx ;grid[4] ---> grid[5]
 	cmp al, [bx]
 	jne thirdRow
 	mov win, 1
 	ret
 
-	thirdRow:
-	mov bx, si; --->grid[0]
-	add bx, 6;grid[0] ---> grid[6]
+thirdRow:
+	mov bx, si ; --->grid[0]
+	add bx, 6 ;grid[0] ---> grid[6]
 	mov al, [bx]
-	inc bx	;grid[6] ---> grid[7]
+	inc bx ;grid[6] ---> grid[7]
 	cmp al, [bx]
 	jne endCheckRows
-	inc bx	;grid[7] ---> grid[8]
+	inc bx ;grid[7] ---> grid[8]
 	cmp al, [bx]
 	jne endCheckRows
 	mov win, 1
-	endCheckRows:
+
+endCheckRows:
 	ret
 
 ;-------------------------------------------;
@@ -430,7 +442,7 @@ CheckColumns:
 	mov win, 1
 	ret
 
-	secondColumn:
+secondColumn:
 	mov bx, si; --->grid[0]
 	inc bx	;grid[0] ---> grid[1]
 	mov al, [bx]
@@ -443,7 +455,7 @@ CheckColumns:
 	mov win, 1
 	ret
 
-	thirdColumn:
+thirdColumn:
 	mov bx, si; --->grid[0]
 	add bx, 2	;grid[0] ---> grid[2]
 	mov al, [bx]
@@ -457,59 +469,270 @@ CheckColumns:
 	endCheckColumns:
 	ret
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 ; MY EXTRA FUNCTIONS
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Requiriment a) Change the name for player1 and player2
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Set the name of users
+USERNAME:
+    ; prompt message to username for player 1
+    lea dx, namePlayer1
+    mov ah, 9
+    int 21H
+
+	; save username1
+    mov dx, offset username1
+    mov ah, 0ah
+    int 21h
+
+    lea dx, newline
+	call printString
+
+    ; prompt message to username for player 2
+	lea dx, namePlayer2
+    mov ah, 9
+    int 21H
+
+	; save username2
+    mov dx, offset username2
+    mov ah, 0ah
+    int 21h
+
+    lea dx, newline
+	call printString
+	ret
 
 ; Print username1
 printUsername1:
- xor bx, bx ; zero
- mov bl, username1[1] ; number of chars
- mov username1[bx+2], '$' ; insert $
- mov dx, offset username1 + 2
- mov ah, 9
- int 21H
- ret
+	xor bx, bx ; zero
+	mov bl, username1[1] ; number of chars
+	mov username1[bx+2], '$' ; insert $
+	mov dx, offset username1 + 2
+	mov ah, 9
+	int 21H
+	ret
 
 ; Print username2
 printUsername2:
- xor bx, bx ; zero
- mov bl, username2[1] ; number of chars
- mov username2[bx+2], '$' ; insert $
- mov dx, offset username2 + 2
- mov ah, 9
- int 21H
- ret
+	xor bx, bx ; zero
+	mov bl, username2[1] ; number of chars
+	mov username2[bx+2], '$' ; insert $
+	mov dx, offset username2 + 2
+	mov ah, 9
+	int 21H
+	ret
 
 ; Player 1 win, print his name and ask for a new game
 player1Win:
- xor bx, bx ; zero
- mov bl, username1[1] ; number of chars
- mov username1[bx+2], '$' ; insert $
- mov dx, offset username1 + 2
- mov ah, 9
- int 21H
+	xor bx, bx ; zero
+	mov bl, username1[1] ; number of chars
+	mov username1[bx+2], '$' ; insert $
+	mov dx, offset username1 + 2
+	mov ah, 9
+	int 21H
 
- lea dx, newline
- call printString
- jmp askForNewGame
+	lea dx, newline
+	call printString
+	jmp askForNewGame
 
 ; Player 2 win, print his name and ask for a new game
 player2Win:
- xor bx, bx ; zero
- mov bl, username2[1] ; number of chars
- mov username2[bx+2], '$' ; insert $
- mov dx, offset username2 + 2
- mov ah, 9
- int 21H
+	xor bx, bx ; zero
+	mov bl, username2[1] ; number of chars
+	mov username2[bx+2], '$' ; insert $
+	mov dx, offset username2 + 2
+	mov ah, 9
+	int 21H
 
- lea dx, newline
- call printString
- jmp askForNewGame
+	lea dx, newline
+	call printString
+	jmp askForNewGame
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Requiriment b) Change the symbol for player1 and player2
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Set the symbols for the users
+SYMBOL:
+    ; set symbol for player 1
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    ; Ask player 1 symbol
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; Print player 1 name
+	call printUsername1
+
+    ; Show a message to say that only non digits was accept
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
+
+	; Save the symbol1
+    mov ah, 1
+    int 21H
+    mov symbol1, al
+
+	lea dx, newline
+	call printString
+
+    ; Set symbol for player 2
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    ; Ask player 2 symbol
+    mov dx, offset symbolMessage
+    mov ah, 9
+    int 21h
+
+    ; Print player 2 name
+	call printUsername2
+
+    ; Show a message to say that only non digits was accept
+    mov dx, offset symbolWarningMessage
+    mov ah, 9
+    int 21h
+
+	; Save the symbol2
+    mov ah, 1
+    int 21H
+    mov symbol2, al
+
+    lea dx, newline
+    call printString
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Requiriment b) Change the color of symbol (in this case, change the
+; color of all the table for player1 and player2)
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+; Set the color of the symbols
+COLOR:
+    call clearScreen
+    ; set color for player 1
+	mov ax, data
+	mov ds, ax
+	mov es, ax
+
+    lea dx, newline
+	call printString
+
+    lea dx, colorOptions
+    mov ah, 9
+    int 21H
+
+    lea dx, newline
+    call printString
+
+    lea dx, newline
+	call printString
+
+    ; Ask player 1 color
+    mov dx, offset colorMessage
+    mov ah, 9
+    int 21h
+
+    call printUsername1
+    lea dx, twodots
+    call printString
+
+    mov ah, 1
+    int 21H
+    mov color1, al
+
+	lea dx, newline
+	call printString
+
+	; Ask player 2 color
+    mov dx, offset colorMessage
+    mov ah, 9
+    int 21h
+
+    call printUsername2
+    lea dx, twodots
+    call printString
+
+    mov ah, 1
+    int 21H
+    mov color2, al
+
+	lea dx, newline
+	call printString
+
+    ret
+
+; Set table color for the next round
+swithColor:
+	cmp player, 1
+	je setColorPlayer2
+	jg setColorPlayer1
+    ret
+
+; Set the choosen color of player 1
+setColorPlayer1:
+    cmp color1, '0'
+	je setWhiteColor
+	cmp color1, '1'
+	je setBlueColor
+	cmp color1, '2'
+	je setGreenColor
+	cmp color1, '3'
+	je setCyanColor
+	cmp color1, '4'
+	je setRedColor
+	cmp color1, '5'
+	je setMagentaColor
+	cmp color1, '6'
+	je setBrownColor
+	cmp color1, '7'
+	je setLightGrayColor
+	cmp color1, '8'
+	je setDarkGrayColor
+	cmp color1, '9'
+	je setYellowColor
+	ret
+
+; Set the choosen color of player 2
+setColorPlayer2:
+    cmp color2, '0'
+	je setWhiteColor
+	cmp color2, '1'
+	je setBlueColor
+	cmp color2, '2'
+	je setGreenColor
+	cmp color2, '3'
+	je setCyanColor
+	cmp color2, '4'
+	je setRedColor
+	cmp color2, '5'
+	je setMagentaColor
+	cmp color2, '6'
+	je setBrownColor
+	cmp color2, '7'
+	je setLightGrayColor
+	cmp color2, '8'
+	je setDarkGrayColor
+	cmp color2, '9'
+	je setYellowColor
+	ret
 
 setWhiteColor:
     mov bl, 00001111b
@@ -561,15 +784,15 @@ setYellowColor:
     call changeColorTable
     ret
 
-
 ; Change color of symbol1
 changeColorTable:
-
+	; Backup all registers before change the color of table
     pusha
 
     mov al, 1
     mov bh, 0
 
+	; Size of string to color
     mov cx, 1
 
     ; Color position [1][1]
@@ -626,195 +849,8 @@ changeColorTable:
     mov ah, 13h
     int 10h
 
+	; Put back the original values of registers
     popa
-
-    ret
-
-; Set the name of users
-USERNAME:
-    ; prompt message to username for player 1
-    lea dx, namePlayer1
-    mov ah, 9
-    int 21H
-
-    mov dx, offset username1
-    mov ah, 0ah
-    int 21h
-
-    lea dx, newline
-	call printString
-
-    ; prompt message to username for player 2
-	lea dx, namePlayer2
-    mov ah, 9
-    int 21H
-
-    mov dx, offset username2
-    mov ah, 0ah
-    int 21h
-
-    lea dx, newline
-	call printString
-	ret
-
-; Set the symbols for the users
-SYMBOL:
-    ; set symbol for player 1
-	mov ax, data
-	mov ds, ax
-	mov es, ax
-
-    ; Ask player 1 symbol
-    mov dx, offset symbolMessage
-    mov ah, 9
-    int 21h
-
-    ; Print player 1 name
-	call printUsername1
-
-    ; Show a message to say that only non digits was accept
-    mov dx, offset symbolWarningMessage
-    mov ah, 9
-    int 21h
-
-    mov ah, 1
-    int 21H
-    mov symbol1, al
-
-	lea dx, newline
-	call printString
-
-    ; Set symbol for player 2
-	mov ax, data
-	mov ds, ax
-	mov es, ax
-
-    ; Ask player 2 symbol
-    mov dx, offset symbolMessage
-    mov ah, 9
-    int 21h
-
-    ; Print player 2 name
-	call printUsername2
-
-    ; Show a message to say that only non digits was accept
-    mov dx, offset symbolWarningMessage
-    mov ah, 9
-    int 21h
-
-    mov ah, 1
-    int 21H
-    mov symbol2, al
-
-    lea dx, newline
-    call printString
-    ret
-
-
-setColorPlayer1:
-    cmp color1, '0'
-	je setWhiteColor
-	cmp color1, '1'
-	je setBlueColor
-	cmp color1, '2'
-	je setGreenColor
-	cmp color1, '3'
-	je setCyanColor
-	cmp color1, '4'
-	je setRedColor
-	cmp color1, '5'
-	je setMagentaColor
-	cmp color1, '6'
-	je setBrownColor
-	cmp color1, '7'
-	je setLightGrayColor
-	cmp color1, '8'
-	je setDarkGrayColor
-	cmp color1, '9'
-	je setYellowColor
-	ret
-
-setColorPlayer2:
-    cmp color2, '0'
-	je setWhiteColor
-	cmp color2, '1'
-	je setBlueColor
-	cmp color2, '2'
-	je setGreenColor
-	cmp color2, '3'
-	je setCyanColor
-	cmp color2, '4'
-	je setRedColor
-	cmp color2, '5'
-	je setMagentaColor
-	cmp color2, '6'
-	je setBrownColor
-	cmp color2, '7'
-	je setLightGrayColor
-	cmp color2, '8'
-	je setDarkGrayColor
-	cmp color2, '9'
-	je setYellowColor
-	ret
-
-swithColor:
-	cmp player, 1
-	je setColorPlayer2
-	jg setColorPlayer1
-    ret
-
-; Set the color of the symbols
-COLOR:
-    call clearScreen
-    ; set color for player 1
-	mov ax, data
-	mov ds, ax
-	mov es, ax
-
-    lea dx, newline
-	call printString
-
-    lea dx, colorOptions
-    mov ah, 9
-    int 21H
-
-    lea dx, newline
-    call printString
-
-    lea dx, newline
-	call printString
-
-    ; Ask player 1 color
-    mov dx, offset colorMessage
-    mov ah, 9
-    int 21h
-
-    call printUsername1
-    lea dx, twodots
-    call printString
-
-    mov ah, 1
-    int 21H
-    mov color1, al
-
-	lea dx, newline
-	call printString
-
-	; Ask player 2 color
-    mov dx, offset colorMessage
-    mov ah, 9
-    int 21h
-
-    call printUsername2
-    lea dx, twodots
-    call printString
-
-    mov ah, 1
-    int 21H
-    mov color2, al
-
-	lea dx, newline
-	call printString
 
     ret
 
